@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { fetchInfo, downloadUrl } from "./api";
+import React, { useState, useEffect } from "react";
+import { fetchInfo, downloadUrl, pingBackend } from "./api";
+import "./styles.css";
 
 export default function App() {
   const [url, setUrl] = useState("");
@@ -8,19 +9,35 @@ export default function App() {
   const [thumbnail, setThumbnail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [backendAvailable, setBackendAvailable] = useState(false);
+  const [checkedBackend, setCheckedBackend] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const ok = await pingBackend();
+      setBackendAvailable(ok);
+      setCheckedBackend(true);
+    })();
+  }, []);
 
   const handleSearch = async () => {
     setError("");
+    setVideoId("");
+    setTitle("");
+    setThumbnail("");
     if (!url) return setError("Please paste a YouTube URL");
     setLoading(true);
     try {
       const info = await fetchInfo(url);
-      if (!info.videoId) {
+      if (!info || !info.videoId) {
         setError("Could not extract video id. Check URL.");
       } else {
         setVideoId(info.videoId);
         setTitle(info.title || "");
         setThumbnail(info.thumbnail || "");
+        const ok = await pingBackend();
+        setBackendAvailable(ok);
+        setCheckedBackend(true);
       }
     } catch (err) {
       console.error(err);
@@ -54,15 +71,31 @@ export default function App() {
             <div>
               <h3>{title || "YouTube Video"}</h3>
               <div className="actions">
-                <a
-                  className="download"
-                  href={downloadUrl(url)}
-                  onClick={() => {
-                    // note: this will start a GET request to backend to stream file
-                  }}
-                >
-                  Download Audio (server)
-                </a>
+                {checkedBackend ? (
+                  backendAvailable ? (
+                    <a
+                      className="download"
+                      href={downloadUrl(url)}
+                      rel="noreferrer"
+                    >
+                      Download Audio (server)
+                    </a>
+                  ) : (
+                    <button
+                      className="download"
+                      disabled
+                      title="Backend not available. Either deploy the backend or set VITE_API_BASE env var."
+                      style={{ opacity: 0.7, cursor: "not-allowed" }}
+                    >
+                      Download (unavailable)
+                    </button>
+                  )
+                ) : (
+                  <button className="download" disabled>
+                    Checking backend...
+                  </button>
+                )}
+
                 <a
                   className="openyt"
                   href={`https://www.youtube.com/watch?v=${videoId}`}
@@ -88,8 +121,8 @@ export default function App() {
           </div>
 
           <p className="note">
-            Note: "Download Audio" uses the backend server's yt-dlp + ffmpeg.
-            Ensure you run the backend locally with yt-dlp & ffmpeg installed.
+            Note: Download requires a running backend that supports /api/download
+            and yt-dlp/ffmpeg if using the local extractor.
           </p>
         </div>
       )}
