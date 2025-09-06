@@ -1,31 +1,40 @@
-# YouTube Audio/Video Player & (Local) Download Starter
+# Yt-play Starter (Frontend + Backend)
 
-**Important:** This project is a learning/prototype starter. Downloading audio/video from YouTube may violate YouTube's Terms of Service and copyright law. Use this code only for local testing and learning. Do NOT publish or distribute without ensuring legal compliance.
+Short: A minimal starter that accepts a YouTube URL, embeds the video for playback, and provides an optional local download endpoint that uses yt-dlp + ffmpeg to create an MP3 for download.
 
-## What is included
-- `backend/` — Node.js (Express) server using `yt-dlp` to fetch metadata and proxy audio streams.
-- `frontend/` — Expo (React Native) starter `App.js` showing URL input, thumbnail/title, audio play and download triggering backend endpoint.
+Important legal note
+- Downloading audio from YouTube can violate YouTube's Terms of Service and copyright law in many situations. Use the download feature only for personal/educational use and only when you have the right to download the content. Do NOT deploy public download services without verifying legality.
 
-## Quick run (local)
-### Prerequisites
-- Node.js (v18+), npm
-- Python `yt-dlp` installed system-wide (e.g. `pip install -U yt-dlp`) or ensure `yt-dlp` binary is available.
+What's included
+- frontend: React (Vite) app — input URL, shows embedded video, "Download Audio" button (calls backend).
+- backend: Express server — /api/info to get basic meta (via YouTube oEmbed), /api/download to create an MP3 using yt-dlp (local-only example).
 
-### Backend
-```bash
-cd backend
-npm install
-# ensure yt-dlp is available on PATH
-node server.js
-# backend will start on http://localhost:7000
-```
+Setup (local)
+1. Clone/place files to your machine in one folder with two subfolders: `backend/` and `frontend/`.
 
-### Frontend (Expo)
-```bash
-cd frontend
-npm install
-npx expo start
-```
+Backend
+- Requires Node 18+.
+- Requires yt-dlp and ffmpeg installed on your system (for the download endpoint).
+  - Example (macOS with Homebrew): `brew install yt-dlp ffmpeg`
+  - Linux (Debian/Ubuntu): `sudo apt install ffmpeg` and install yt-dlp per docs (or pip: `python3 -m pip install -U yt-dlp`).
+- From `backend/`:
+  - npm install
+  - copy `.env.example` to `.env` and edit if needed
+  - npm start
+  - Default runs on port 4000
 
-## Notes
-- The backend proxies the audio stream for local playback and download. For production or public distribution, remove download features or follow YouTube's policies.
+Frontend
+- From `frontend/`:
+  - npm install
+  - npm run dev
+  - Default Vite dev server runs on port 5173
+
+Usage
+- Open frontend URL from Vite (usually http://localhost:5173), paste a YouTube URL and press Search.
+- Video will embed. Click "Download Audio (server)" to request backend MP3 creation and download (backend must have yt-dlp and ffmpeg available).
+
+Notes & future improvements
+- Use YouTube Data API for richer metadata and related video lists (requires API key).
+- Add progress indicator for server-side conversion.
+- Add authentication/ratelimiting if enabling downloads on a public server (to avoid abuse).
+- Consider removing direct-download support to stay strictly within YouTube ToS.
