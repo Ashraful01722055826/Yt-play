@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: yt-play-backend
+    env: docker
+    repo: https://github.com/Ashraful01722055826/Yt-play
+    branch: main
+    path: backend
+    dockerfilePath: backend/Dockerfile
+    plan: free
+    buildCommand: ""
+    startCommand: "node index.js"
+    envVars:
+      - key: PORT
+        value: "4000"
