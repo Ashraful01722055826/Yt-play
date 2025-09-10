@@ -1,0 +1,42 @@
+version: "3.8"
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: ytplay_backend
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    environment:
+      - PORT=4000
+      - NODE_ENV=production
+      # add your backend env vars here, for example:
+      # - YT_API_KEY=...
+    ports:
+      - "4000:4000"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "command -v yt-dlp >/dev/null && command -v ffmpeg >/dev/null"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: ytplay_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      # frontend build-time env: update as needed. For dev you may want:
+      - VITE_API_BASE=http://localhost:4000
+    ports:
+      - "80:80"
+    # no volume mapping for static build by default; change if you want live dev mounts
+
+# Notes:
+# - nginx in frontend image proxies /api to the backend service name "backend"
+# - If you want external port mapping different than 80, change ports above
